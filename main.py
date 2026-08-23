@@ -53,6 +53,7 @@ async def add_expense(date ,amount: int,category: str,subcategory: str):
         async with aiosqlite.connect(path) as f:
                 cur = await f.execute("INSERT INTO expense(date,amount,category,subcategory) VALUES (?,?,?,?)",
                                 (date,amount,category,subcategory))
+                await f.commit()
                 return {'status':'ok','id':cur.lastrowid}
 
 
@@ -63,6 +64,7 @@ async def list_all_expense():
     async with aiosqlite.connect(path) as f:
         data = await f.execute("SELECT id,date,amount,category,subcategory FROM expense ORDER BY id ASC")
         cur = [d[0] for d in data.description]
+        await f.commit()
         return [dict(zip(cur,r)) for r in await data.fetchall()]
 
 
@@ -74,6 +76,7 @@ async def list_expense_in_range(st,ed):
         data = await f.execute("SELECT id,date,amount,category,subcategory FROM expense WHERE date BETWEEN ? AND ? ORDER BY id ASC",
                          (st,ed))
         cur = [d[0] for d in data.description]
+        await f.commit()
         return [dict(zip(cur,r)) for r in await data.fetchall()]
 
 if __name__ == '__main__':

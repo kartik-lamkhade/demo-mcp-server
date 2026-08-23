@@ -38,9 +38,9 @@ async def create_table():
             );
             """)
           
-async def init():
+async def __init__():
     await create_table()
-    
+
 @mcp.tool
 async def add_expense(date ,amount: int,category: str,subcategory: str):
         'this function use to add expense in expense tracker'

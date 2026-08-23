@@ -20,8 +20,10 @@
 from fastmcp import FastMCP
 import sqlite3
 import os
+import tempfile
+
 mcp = FastMCP(name='expainse_tracker')
-path = os.path.join(os.path.dirname(__file__),'data.db')
+path = os.path.join(tempfile.gettempdir(),'data.db')
 with sqlite3.connect(path) as f:
     f.execute("""
                 CREATE TABLE IF NOT EXISTS expense (

@@ -22,31 +22,33 @@ import sqlite3
 import os
 import tempfile
 
-mcp = FastMCP(name='expainse_tracker')
-path = os.path.join(tempfile.gettempdir(),'data.db')
-with sqlite3.connect(path) as f:
-    f.execute("""
-                CREATE TABLE IF NOT EXISTS expense (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    date TEXT NOT NULL,
-                    amount REAL NOT NULL,
-                    category TEXT NOT NULL,
-                    subcategory TEXT DEFAULT ''
-                );
-            """)
-
-
-@mcp.tool
-def add_expense(date ,amount: int,category: str,subcategory: str):
-    'this function use to add expense in expense tracker'
+try:
+    mcp = FastMCP(name='expainse_tracker')
+    path = os.path.join(tempfile.gettempdir(),'data.db')
     with sqlite3.connect(path) as f:
-        cur = f.execute("INSERT INTO expense(date,amount,category,subcategory) VALUES (?,?,?,?)",
-                        (date,amount,category,subcategory))
-        return {'status':'ok','id':cur.lastrowid}
+        f.execute("""
+                    CREATE TABLE IF NOT EXISTS expense (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date TEXT NOT NULL,
+                        amount REAL NOT NULL,
+                        category TEXT NOT NULL,
+                        subcategory TEXT DEFAULT ''
+                    );
+                """)
+except Exception as e:
+    raise Exception(f"Error initializing the database: {e}")
+
+@mcp.tool
+async def add_expense(date ,amount: int,category: str,subcategory: str):
+        'this function use to add expense in expense tracker'
+        with sqlite3.connect(path) as f:
+            cur = f.execute("INSERT INTO expense(date,amount,category,subcategory) VALUES (?,?,?,?)",
+                            (date,amount,category,subcategory))
+            return {'status':'ok','id':cur.lastrowid}
 
 
 @mcp.tool
-def list_all_expense():
+async def list_all_expense():
     'this function return all expense data'
     with sqlite3.connect(path) as f:
         data = f.execute("SELECT id,date,amount,category,subcategory FROM expense ORDER BY id ASC")
@@ -55,7 +57,7 @@ def list_all_expense():
 
 
 @mcp.tool
-def list_expense_in_range(st,ed):
+async def list_expense_in_range(st,ed):
     'this function return expense in range of dates form data'
     with sqlite3.connect(path) as f:
         data = f.execute("SELECT id,date,amount,category,subcategory FROM expense WHERE date BETWEEN ? AND ? ORDER BY id ASC",

@@ -42,7 +42,7 @@ try:
 
 except Exception as e:
     raise Exception(f"Error initializing the database: {e}")
-create()
+asyncio.run(create())
 @mcp.tool
 async def add_expense(date ,amount: int,category: str,subcategory: str):
         'this function use to add expense in expense tracker'

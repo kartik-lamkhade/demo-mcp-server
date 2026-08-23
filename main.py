@@ -26,8 +26,13 @@ import tempfile
 mcp = FastMCP(name='expainse_tracker')
 path = os.path.join(tempfile.gettempdir(),'data.db')
 
+_db_ready = False
+
 async def create_table():
     async with aiosqlite.connect(path) as f:
+        global _db_ready
+        if _db_ready:
+            return
         await f.execute("""
                 CREATE TABLE IF NOT EXISTS expense (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,13 +42,14 @@ async def create_table():
                 subcategory TEXT DEFAULT ''
             );
             """)
-          
-async def __init__():
-    await create_table()
+        await f.commit()
+    _db_ready = True
+
 
 @mcp.tool
 async def add_expense(date ,amount: int,category: str,subcategory: str):
         'this function use to add expense in expense tracker'
+        await create_table()
         async with aiosqlite.connect(path) as f:
                 cur = await f.execute("INSERT INTO expense(date,amount,category,subcategory) VALUES (?,?,?,?)",
                                 (date,amount,category,subcategory))
@@ -53,6 +59,7 @@ async def add_expense(date ,amount: int,category: str,subcategory: str):
 @mcp.tool
 async def list_all_expense():
     'this function return all expense data'
+    await create_table()
     async with aiosqlite.connect(path) as f:
         data = await f.execute("SELECT id,date,amount,category,subcategory FROM expense ORDER BY id ASC")
         cur = [d[0] for d in data.description]
@@ -62,6 +69,7 @@ async def list_all_expense():
 @mcp.tool
 async def list_expense_in_range(st,ed):
     'this function return expense in range of dates form data'
+    await create_table()
     async with aiosqlite.connect(path) as f:
         data = await f.execute("SELECT id,date,amount,category,subcategory FROM expense WHERE date BETWEEN ? AND ? ORDER BY id ASC",
                          (st,ed))

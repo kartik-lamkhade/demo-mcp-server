@@ -25,23 +25,19 @@ import asyncio
 import tempfile
 mcp = FastMCP(name='expainse_tracker')
 path = os.path.join(tempfile.gettempdir(),'data.db')
-try:
-    async def create():
 
-        async with aiosqlite.connect(path) as f:
-            await f.execute("""
-                    CREATE TABLE IF NOT EXISTS expense (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        date TEXT NOT NULL,
-                        amount REAL NOT NULL,
-                        category TEXT NOT NULL,
-                        subcategory TEXT DEFAULT ''
-                    );
-                    """)
+async def create_table():
+    async with aiosqlite.connect(path) as f:
+        await f.execute("""
+                CREATE TABLE IF NOT EXISTS expense (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT NOT NULL,
+                    amount REAL NOT NULL,
+                category TEXT NOT NULL,
+                subcategory TEXT DEFAULT ''
+            );
+            """)
                     
-
-except Exception as e:
-    raise Exception(f"Error initializing the database: {e}")
 
 @mcp.tool
 async def add_expense(date ,amount: int,category: str,subcategory: str):
@@ -71,5 +67,5 @@ async def list_expense_in_range(st,ed):
         return [dict(zip(cur,r)) for r in await data.fetchall()]
 
 if __name__ == '__main__':
-
+    asyncio.run(create_table())
     mcp.run()
